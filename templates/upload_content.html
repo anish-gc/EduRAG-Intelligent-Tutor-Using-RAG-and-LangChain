@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduRAG - Content Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px dashed #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section.drag-over {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.02);
+        }
+
+        .upload-area {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+        }
+
+        .file-input-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-section {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .selected-files {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .selected-files h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-icon {
+            font-size: 2em;
+            color: #667eea;
+        }
+
+        .file-details h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .file-details p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .upload-progress {
+            margin-top: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.info {
+            background: #17a2b8;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                📚 EduRAG Content Upload
+            </h1>
+            <p>Upload educational content to enhance the tutoring system</p>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-area">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Drag and drop files here</div>
+                    <div class="upload-subtext">or click to browse</div>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" class="file-input" multiple accept=".txt,.pdf,.doc,.docx,.md">
+                        <button class="file-input-button" onclick="document.getElementById('fileInput').click()">
+                            📎 Choose Files
+                        </button>
+                    </div>
+                </div>
+
+                <div class="selected-files" id="selectedFiles" style="display: none;">
+                    <h3>Selected Files</h3>
+                    <div id="fileList"></div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>📝 Content Metadata</h2>
+                
+                <form id="contentForm">
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" name="title" required placeholder="Enter content title">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="topic">Topic *</label>
+                            <select id="topic" name="topic" required>
+                                <option value="">Select Topic</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Science">Science</option>
+                                <option value="English">English</option>
+                                <option value="History">History</option>
+                                <option value="Geography">Geography</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Biology">Biology</option>
+                                <option value="Literature">Literature</option>
+                                <option value="Social Studies">Social Studies</option>
+                                <option value="Art">Art</option>
+                                <option value="Music">Music</option>
+                                <option value="Physical Education">Physical Education</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="grade">Grade Level *</label>
+                            <select id="grade" name="grade" required>
+                                <option value="">Select Grade</option>
+                                <option value="1">Grade 1</option>
+                                <option value="2">Grade 2</option>
+                                <option value="3">Grade 3</option>
+                                <option value="4">Grade 4</option>
+                                <option value="5">Grade 5</option>
+                                <option value="6">Grade 6</option>
+                                <option value="7">Grade 7</option>
+                                <option value="8">Grade 8</option>
+                                <option value="9">Grade 9</option>
+                                <option value="10">Grade 10</option>
+                                <option value="11">Grade 11</option>
+                                <option value="12">Grade 12</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" placeholder="Brief description of the content (optional)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="keywords">Keywords</label>
+                        <input type="text" id="keywords" name="keywords" placeholder="Enter keywords separated by commas">
+                    </div>
+                </form>
+
+                <div class="upload-actions">
+                    <button class="btn btn-primary" onclick="uploadContent()">
+                        🚀 Upload Content
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearForm()">
+                        🔄 Clear Form
+                    </button>
+                    <button class="btn btn-secondary" onclick="previewContent()">
+                        👁️ Preview
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="upload-progress" id="uploadProgress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Uploading... 0%</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="totalFiles">0</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-value" id="totalTopics">0</div>
+                <div class="stat-label">Topics Covered</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎓</div>
+                <div class="stat-value" id="totalGrades">0</div>
+                <div class="stat-label">Grade Levels</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value" id="uploadSuccess">0</div>
+                <div class="stat-label">Successful Uploads</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let selectedFiles = [];
+        let uploadStats = {
+            totalFiles: 0,
+            totalTopics: 0,
+            totalGrades: 0,
+            uploadSuccess: 0
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadInitialStats();
+        });
+
+        function setupEventListeners() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadSection = document.getElementById('uploadSection');
+
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Drag and drop
+            uploadSection.addEventListener('dragover', handleDragOver);
+            uploadSection.addEventListener('drop', handleDrop);
+            uploadSection.addEventListener('dragleave', handleDragLeave);
+
+            // Form validation
+            document.getElementById('contentForm').addEventListener('input', validateForm);
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            addFiles(files);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+            
+            const files = Array.from(event.dataTransfer.files);
+            addFiles(files);
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        function addFiles(files) {
+            // Filter valid files
+            const validFiles = files.filter(file => {
+                const validTypes = ['.txt', '.pdf', '.doc', '.docx', '.md'];
+                const extension = '.' + file.name.split('.').pop().toLowerCase();
+                return validTypes.includes(extension);
+            });
+
+            // Add to selected files
+            selectedFiles = [...selectedFiles, ...validFiles];
+            
+            // Update UI
+            updateFileList();
+            showNotification('Files added successfully!', 'success');
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            const selectedFilesDiv = document.getElementById('selectedFiles');
+
+            if (selectedFiles.length === 0) {
+                selectedFilesDiv.style.display = 'none';
+                return;
+            }
+
+            selectedFilesDiv.style.display = 'block';
+            fileList.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">${getFileIcon(file.name)}</div>
+                        <div class="file-details">
+                            <h4>${file.name}</h4>
+                            <p>${formatFileSize(file.size)} • ${file.type || 'Unknown type'}</p>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="btn btn-danger" onclick="removeFile(${index})">🗑️</button>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            showNotification('File removed', 'info');
+        }
+
+        function getFileIcon(fileName) {
+            const extension = fileName.split('.').pop().toLowerCase();
+            const icons = {
+                'txt': '📄',
+                'pdf': '📕',
+                'doc': '📘',
+                'docx': '📘',
+                'md': '📝'
+            };
+            return icons[extension] || '📄';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function validateForm() {
+            const title = document.getElementById('title').value.trim();
+            const topic = document.getElementById('topic').value;
+            const grade = document.getElementById('grade').value;
+            
+            const isValid = title && topic && grade && selectedFiles.length > 0;
+            
+            // Enable/disable upload button
+            const uploadBtn = document.querySelector('.btn-primary');
+            uploadBtn.disabled = !isValid;
+            uploadBtn.style.opacity = isValid ? '1' : '0.5';
+            
+            return isValid;
+        }
+
+        async function uploadContent() {
+            if (!validateForm()) {
+                showNotification('Please fill in all required fields and select files', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            const title = document.getElementById('title').value.trim();
+            const topic = document.getElementById('topic').value;
+            const grade = document.getElementById('grade').value;
+            const description = document.getElementById('description').value.trim();
+            const keywords = document.getElementById('keywords').value.trim();
+
+            // Show progress
+            showUploadProgress();
+
+            try {
+                let successCount = 0;
+                let totalFiles = selectedFiles.length;
+
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    const fileFormData = new FormData();
+                    
+                    // Add file and metadata
+                    fileFormData.append('file', file);
+                    fileFormData.append('title', `${title} - ${file.name}`);
+                    fileFormData.append('topic', topic);
+                    fileFormData.append('grade', grade);
+                    fileFormData.append('description', description);
+                    fileFormData.append('keywords', keywords);
+
+                    // Update progress
+                    const progress = ((i + 1) / totalFiles) * 100;
+                    updateProgress(progress, `Uploading ${file.name}...`);
+
+                    try {
+                        const response = await fetch(`${API_BASE}/upload-content/`, {
+                            method: 'POST',
+                            body: fileFormData
+                        });
+
+                        if (response.ok) {
+                            successCount++;
+                            updateStats('uploadSuccess', uploadStats.uploadSuccess + 1);
+                        } else {
+                            const errorData = await response.json();
+                            console.error('Upload failed:', errorData);
+                        }
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                    }
+                }
+
+                // Hide progress
+                hideUploadProgress();
+
+                if (successCount === totalFiles) {
+                    showNotification(`Successfully uploaded ${successCount} files!`, 'success');
+                    clearForm();
+                    loadInitialStats();
+                } else {
+                    showNotification(`Uploaded ${successCount} out of ${totalFiles} files`, 'info');
+                }
+
+            } catch (error) {
+                hideUploadProgress();
+                showNotification('Upload failed. Please try again.', 'error');
+                console.error('Upload error:', error);
+            }
+        }
+
+        function showUploadProgress() {
+            document.getElementById('uploadProgress').style.display = 'block';
+        }
+
+        function hideUploadProgress() {
+            document.getElementById('uploadProgress').style.display = 'none';
+        }
+
+        function updateProgress(percentage, text) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = text + ' ' + Math.round(percentage) + '%';
+        }
+
+        function clearForm() {
+            document.getElementById('contentForm').reset();
+            selectedFiles = [];
+            updateFileList();
+            document.getElementById('fileInput').value = '';
+            showNotification('Form cleared', 'info');
+        }
+
+        function previewContent() {
+            if (selectedFiles.length === 0) {
+                showNotification('Please select files to preview', 'error');
+                return;
+            }
+
+            const file = selectedFiles[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const preview = content.substring(0, 500) + (content.length > 500 ? '...' : '');
+                
+                alert(`Preview of ${file.name}:\n\n${preview}`);
+            };
+            
+            reader.readAsText(file);
+        }
+
+        async function loadInitialStats() {
+            try {
+                const response = await fetch(`${API_BASE}/metrics/`);
+                const data = await response.json();
+                
+                updateStats('totalFiles', data.total_content_files || 0);
+                updateStats('totalTopics', data.topics_covered || 0);
+                updateStats('totalGrades', data.grades_covered || 0);
+                
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        function updateStats(statName, value) {
+            uploadStats[statName] = value;
+            const element = document.getElementById(statName);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Load stats on page load
+        loadInitialStats();
+    </script>
+</body>
+</html>

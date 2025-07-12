@@ -1,4 +1,5 @@
 import json
+from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse
 from django.db import transaction
@@ -15,6 +16,9 @@ from .serializers import ContentSerializer
 @method_decorator(csrf_exempt, name='dispatch')
 class UploadContentView(View):
     """Upload new textbook content with metadata"""
+    
+    def get(self, request):
+        return render(request, 'upload_content.html' )
     
     def post(self, request):
         try:
@@ -63,7 +67,7 @@ class AskQuestionView(View):
             persona_name = data.get('persona', 'friendly')
             
             # Get persona
-            persona = TutorPersona.objects.get(name=persona_name)
+            persona = TutorPersona.objects.filter(name=persona_name).first()
             
             # Perform semantic search
             llm_service = LLMService()

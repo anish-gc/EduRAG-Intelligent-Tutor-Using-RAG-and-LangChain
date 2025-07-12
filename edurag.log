@@ -59,3 +59,93 @@ Watching for file changes with StatReloader
 /home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/views.py changed, reloading.
 Watching for file changes with StatReloader
 "POST /api/ask/ HTTP/1.1" 200 935
+Watching for file changes with StatReloader
+"GET /api/metrics/ HTTP/1.1" 200 1100
+Method Not Allowed (GET): /api/upload-content/
+"GET /api/upload-content/ HTTP/1.1" 405 0
+Method Not Allowed (GET): /api/upload-content/
+"GET /api/upload-content/ HTTP/1.1" 405 0
+Method Not Allowed (GET): /api/upload-content/
+"GET /api/upload-content/ HTTP/1.1" 405 0
+"GET / HTTP/1.1" 200 27897
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 14476
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15613
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15613
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15613
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15613
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+Method Not Allowed (GET): /api/upload-content/
+"GET /api/upload-content/ HTTP/1.1" 405 0
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/content/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/content/views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET /api/upload-content/ HTTP/1.1" 200 27897
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15614
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 2662
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/urls.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/rag_pipeline.py changed, reloading.
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"POST /api/ask/ HTTP/1.1" 200 314
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/content/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"POST /api/ask/ HTTP/1.1" 200 314
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/content/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/rag_pipeline.py changed, reloading.
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1100
+"POST /api/ask/ HTTP/1.1" 200 314
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1098
+"POST /api/ask/ HTTP/1.1" 200 317
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/rag_pipeline.py changed, reloading.
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1098
+"GET / HTTP/1.1" 200 15614
+"GET /api/metrics/ HTTP/1.1" 200 1098
+"POST /api/ask/ HTTP/1.1" 200 1526

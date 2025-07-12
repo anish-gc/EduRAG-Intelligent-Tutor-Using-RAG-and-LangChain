@@ -195,7 +195,7 @@ class RAGPipeline:
             
             # Get persona
             try:
-                persona = TutorPersona.objects.get(name=persona_name)
+                persona = TutorPersona.objects.filter(name=persona_name).first()
             except TutorPersona.DoesNotExist:
                 # Create default persona
                 persona = TutorPersona.objects.create(
@@ -284,7 +284,7 @@ class RAGPipeline:
         for content in relevant_content:
             context_parts.append(
                 f"Source: {content['title']} (Grade {content['grade']}, Topic: {content['topic']})\n"
-                f"Content: {content['content'][:500]}...\n"
+                f"Content: {content['content'][:1000]}...\n"
                 f"Relevance: {content['similarity']:.2f}\n"
             )
         
@@ -326,7 +326,7 @@ class RAGPipeline:
     def log_interaction(self, question, answer, persona_name, sources):
         """Log question-answer interaction"""
         try:
-            persona = TutorPersona.objects.get(name=persona_name)
+            persona = TutorPersona.objects.filter(name=persona_name).first()
             
             QuestionAnswer.objects.create(
                 question=question,

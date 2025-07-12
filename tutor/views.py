@@ -1,34 +1,19 @@
-from django.views import View
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 import json
+from django.views import View
+from django.db import models
 
 from tutor.rag_pipeline import RAGPipeline
 from .models import TutorPersona, QuestionAnswer
 
-
-
-
-
-
-
-
-
-
 # tutor/views.py
-import json
-import logging
-from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.db import models
-from django.core.exceptions import ValidationError
 
 from content.models import Content
 from .models import TutorPersona, QuestionAnswer
 
+import logging
 logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name='dispatch')
