@@ -8,6 +8,7 @@ import logging
 from django.db import models
 from content.models import Content
 from tutor.models import QuestionAnswer, TutorPersona
+from sklearn.metrics.pairwise import cosine_similarity
 
 logger = logging.getLogger(__name__)
 
@@ -22,84 +23,33 @@ class RAGPipeline:
             'encouraging': "You are an encouraging tutor who builds confidence and celebrates progress."
         }
     
-    def initialize_personas(self):
-        """Initialize default tutor personas"""
-        for name, prompt in self.default_personas.items():
-            TutorPersona.objects.get_or_create(
-                name=name,
-                defaults={
-                    'system_prompt': prompt,
-                    'description': f'{name.capitalize()} tutoring style'
-                }
-            )
-    
     def generate_embedding(self, text):
-        """Generate embeddings using OpenAI API"""
+        """Generate embeddings using OpenAI API with fallback"""
         try:
-            response = openai.Embedding.create(
+            response = openai.embeddings.create(
                 model="text-embedding-ada-002",
-                input=text[:8000]  # Limit text length
+                input=text[:8000]
             )
-            return np.array(response['data'][0]['embedding'])
+            return np.array(response.data[0].embedding)
         except Exception as e:
-            logger.error(f"Error generating embedding: {e}")
-            return None
-    
-    def process_content(self, content_obj):
-        """Process uploaded content and generate embeddings"""
-        try:
-            # Chunk content into smaller pieces for better retrieval
-            chunks = self._chunk_text(content_obj.content_text)
-            
-            for i, chunk in enumerate(chunks):
-                embedding = self.generate_embedding(chunk)
-                if embedding is not None:
-                    # Create separate content records for each chunk
-                    Content.objects.create(
-                        title=f"{content_obj.title} - Part {i+1}",
-                        topic=content_obj.topic,
-                        grade=content_obj.grade,
-                        content_text=chunk,
-                        embedding=embedding.tolist()
-                    )
-            
-            return True
-        except Exception as e:
-            logger.error(f"Error processing content: {e}")
-            return False
-    
-    def _chunk_text(self, text, chunk_size=1000, overlap=200):
-        """Split text into overlapping chunks"""
-        chunks = []
-        start = 0
-        
-        while start < len(text):
-            end = start + chunk_size
-            chunk = text[start:end]
-            
-            # Try to break at sentence boundaries
-            if end < len(text):
-                last_period = chunk.rfind('.')
-                if last_period > chunk_size * 0.5:  # At least half the chunk
-                    end = start + last_period + 1
-                    chunk = text[start:end]
-            
-            chunks.append(chunk.strip())
-            start = end - overlap
-            
-            if start >= len(text):
-                break
-        
-        return chunks
+            logger.error(f"OpenAI embedding failed: {e}")
+            # Fallback to local model
+            try:
+                embedding = self.embedding_model.encode(text)
+                return np.array(embedding)
+            except Exception as e2:
+                logger.error(f"Local embedding failed: {e2}")
+                return None
     
     def semantic_search(self, query, top_k=5, grade_filter=None, topic_filter=None):
-        """Perform semantic search using cosine similarity"""
+        """Perform semantic search with fallback methods"""
         try:
             query_embedding = self.generate_embedding(query)
             if query_embedding is None:
+                logger.error("Failed to generate query embedding")
                 return []
             
-            # Build query with filters
+            # Build queryset with filters
             queryset = Content.objects.filter(embedding__isnull=False)
             
             if grade_filter:
@@ -107,53 +57,152 @@ class RAGPipeline:
             if topic_filter:
                 queryset = queryset.filter(topic__icontains=topic_filter)
             
-            # Use raw SQL for vector similarity (pgvector)
-            with connection.cursor() as cursor:
-                query_vector = query_embedding.tolist()
-                
-                sql = """
-                SELECT id, title, topic, grade, content_text, 
-                       (embedding <-> %s::vector) as distance
-                FROM content 
-                WHERE embedding IS NOT NULL
-                """
-                params = [query_vector]
-                
-                if grade_filter:
-                    sql += " AND grade = %s"
-                    params.append(grade_filter)
-                
-                if topic_filter:
-                    sql += " AND topic ILIKE %s"
-                    params.append(f"%{topic_filter}%")
-                
-                sql += " ORDER BY distance ASC LIMIT %s"
-                params.append(top_k)
-                
-                cursor.execute(sql, params)
-                results = cursor.fetchall()
-                
-                return [
-                    {
-                        'id': row[0],
-                        'title': row[1],
-                        'topic': row[2],
-                        'grade': row[3],
-                        'content': row[4],
-                        'similarity': 1 - row[5]  # Convert distance to similarity
-                    }
-                    for row in results
-                ]
+            print(f"Searching in {queryset.count()} content items")
+            
+            if queryset.count() == 0:
+                logger.warning("No content with embeddings found")
+                return self._fallback_search(query, grade_filter, topic_filter)
+            
+            # Try pgvector first, fallback to manual calculation
+            try:
+                return self._pgvector_search(query_embedding, queryset, top_k)
+            except Exception as e:
+                logger.warning(f"pgvector search failed: {e}")
+                return self._manual_similarity_search(query_embedding, queryset, top_k)
         
         except Exception as e:
             logger.error(f"Error in semantic search: {e}")
+            return self._fallback_search(query, grade_filter, topic_filter)
+    
+    def _pgvector_search(self, query_embedding, queryset, top_k):
+        """Use pgvector for similarity search with VectorField"""
+        with connection.cursor() as cursor:
+            query_vector = query_embedding.tolist()
+            
+            # Get IDs from queryset
+            content_ids = list(queryset.values_list('id', flat=True))
+            
+            if not content_ids:
+                return []
+            
+            placeholders = ','.join(['%s'] * len(content_ids))
+            
+            # Use proper table name and vector operations
+            sql = f"""
+            SELECT id, title, topic, grade, content_text, 
+                   embedding <-> %s as distance
+            FROM content_content 
+            WHERE id IN ({placeholders}) AND embedding IS NOT NULL
+            ORDER BY distance ASC LIMIT %s
+            """
+            
+            params = [query_vector] + content_ids + [top_k]
+            cursor.execute(sql, params)
+            results = cursor.fetchall()
+            
+            return [
+                {
+                    'id': row[0],
+                    'title': row[1],
+                    'topic': row[2],
+                    'grade': row[3],
+                    'content': row[4],
+                    'similarity': max(0, 1 - row[5])  # Ensure non-negative similarity
+                }
+                for row in results
+            ]
+    
+    def _manual_similarity_search(self, query_embedding, queryset, top_k):
+        """Manual cosine similarity calculation for VectorField"""
+        results = []
+        
+        for content in queryset:
+            try:
+                if content.embedding:
+                    # VectorField stores as numpy array or list
+                    if hasattr(content.embedding, 'tolist'):
+                        content_embedding = np.array(content.embedding.tolist())
+                    else:
+                        content_embedding = np.array(content.embedding)
+                    
+                    similarity = cosine_similarity(
+                        query_embedding.reshape(1, -1),
+                        content_embedding.reshape(1, -1)
+                    )[0][0]
+                    
+                    results.append({
+                        'id': content.id,
+                        'title': content.title,
+                        'topic': content.topic,
+                        'grade': content.grade,
+                        'content': content.content_text,
+                        'similarity': float(similarity)
+                    })
+            except Exception as e:
+                logger.error(f"Error processing content {content.id}: {e}")
+                continue
+        
+        # Sort by similarity and return top_k
+        results.sort(key=lambda x: x['similarity'], reverse=True)
+        return results[:top_k]
+    
+    def _fallback_search(self, query, grade_filter, topic_filter):
+        """Fallback to keyword search when embeddings fail"""
+        try:
+            queryset = Content.objects.all()
+            
+            # Apply filters
+            if grade_filter:
+                queryset = queryset.filter(grade=grade_filter)
+            if topic_filter:
+                queryset = queryset.filter(topic__icontains=topic_filter)
+            
+            # Simple keyword search
+            keywords = query.lower().split()
+            for keyword in keywords:
+                queryset = queryset.filter(
+                    models.Q(title__icontains=keyword) |
+                    models.Q(content_text__icontains=keyword)
+                )
+            
+            results = []
+            for content in queryset[:5]:  # Limit to top 5
+                results.append({
+                    'id': content.id,
+                    'title': content.title,
+                    'topic': content.topic,
+                    'grade': content.grade,
+                    'content': content.content_text,
+                    'similarity': 0.5  # Default similarity for keyword search
+                })
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Fallback search failed: {e}")
             return []
     
     def generate_answer(self, question, persona_name='friendly', grade_filter=None, topic_filter=None):
-        """Generate answer using RAG pipeline"""
+        """Generate answer using RAG pipeline with better debugging"""
         try:
+            print(f"Generating answer for: {question[:50]}...")
+            
+            # Debug: Check content availability
+            total_content = Content.objects.count()
+            content_with_embeddings = Content.objects.filter(embedding__isnull=False).count()
+            
+            print(f"Total content: {total_content}, With embeddings: {content_with_embeddings}")
+            
             # Get persona
-            persona = TutorPersona.objects.get(name=persona_name)
+            try:
+                persona = TutorPersona.objects.get(name=persona_name)
+            except TutorPersona.DoesNotExist:
+                # Create default persona
+                persona = TutorPersona.objects.create(
+                    name=persona_name,
+                    system_prompt=self.default_personas.get(persona_name, self.default_personas['friendly']),
+                    description=f"{persona_name.capitalize()} tutoring style"
+                )
             
             # Retrieve relevant content
             relevant_content = self.semantic_search(
@@ -163,11 +212,15 @@ class RAGPipeline:
                 topic_filter=topic_filter
             )
             
+            print(f"Found {len(relevant_content)} relevant pieces of content")
+            
             if not relevant_content:
+                # If no content found, provide a more helpful response
                 return {
-                    'answer': "I don't have specific information about that topic in my knowledge base. Could you provide more context or ask about a different topic?",
+                    'answer': self._generate_general_answer(question, persona.system_prompt),
                     'sources': [],
-                    'confidence': 0.0
+                    'confidence': 0.0,
+                    'processing_time': 0
                 }
             
             # Prepare context from retrieved content
@@ -183,7 +236,7 @@ class RAGPipeline:
                 'answer': answer,
                 'sources': relevant_content[:3],  # Top 3 sources
                 'confidence': float(confidence),
-                'persona': persona_name
+                'processing_time': 0
             }
             
         except Exception as e:
@@ -191,8 +244,38 @@ class RAGPipeline:
             return {
                 'answer': "I apologize, but I encountered an error while processing your question. Please try again.",
                 'sources': [],
-                'confidence': 0.0
+                'confidence': 0.0,
+                'processing_time': 0
             }
+    
+    def _generate_general_answer(self, question, system_prompt):
+        """Generate a general answer when no specific content is found"""
+        try:
+            prompt = f"""
+            {system_prompt}
+            
+            A student asked: "{question}"
+            
+            You don't have specific educational materials about this topic in your knowledge base, 
+            but you can still provide a helpful general response. Provide a brief, educational answer 
+            based on general knowledge and suggest how the student might learn more about this topic.
+            """
+            
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful educational tutor."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=300,
+                temperature=0.7
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            logger.error(f"Error generating general answer: {e}")
+            return "I don't have specific information about that topic in my knowledge base. Could you provide more context or ask about a different topic?"
     
     def _prepare_context(self, relevant_content):
         """Prepare context from relevant content"""
@@ -214,7 +297,6 @@ class RAGPipeline:
             {system_prompt}
             
             You are helping a student with their question. Use the following context to provide a helpful, accurate answer.
-            If the context doesn't contain enough information, say so and provide general guidance.
             
             Context from educational materials:
             {context}
@@ -224,7 +306,7 @@ class RAGPipeline:
             Please provide a clear, educational response that helps the student understand the topic.
             """
             
-            response = openai.ChatCompletion.create(
+            response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are an educational tutor."},
@@ -236,91 +318,10 @@ class RAGPipeline:
             )
             
             return response.choices[0].message.content.strip()
-            
+        
         except Exception as e:
             logger.error(f"Error calling LLM: {e}")
             return "I apologize, but I'm having trouble generating a response right now. Please try again later."
-    
-    def natural_language_to_sql(self, nl_query):
-        """Convert natural language query to SQL"""
-        try:
-            schema_info = """
-            Database Schema:
-            Table: content
-            Columns: id (integer), title (text), topic (text), grade (text), content_text (text), created_at (timestamp)
-            
-            Sample data:
-            - Grades: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-            - Topics: Mathematics, Science, English, History, Geography, Physics, Chemistry, Biology
-            """
-            
-            prompt = f"""
-            Given this database schema:
-            {schema_info}
-            
-            Convert this natural language query to a safe SQL SELECT statement:
-            "{nl_query}"
-            
-            Rules:
-            1. Only use SELECT statements
-            2. Use proper PostgreSQL syntax
-            3. Return only the SQL query, no explanation
-            4. Use appropriate WHERE clauses for filtering
-            5. Include LIMIT clause if not specified (default 10)
-            """
-            
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=200,
-                temperature=0.1
-            )
-            
-            sql_query = response.choices[0].message.content.strip()
-            
-            # Basic safety check
-            if not sql_query.upper().startswith('SELECT'):
-                raise ValueError("Generated query is not a SELECT statement")
-            
-            return sql_query
-            
-        except Exception as e:
-            logger.error(f"Error converting NL to SQL: {e}")
-            return None
-    
-    def execute_nl_query(self, nl_query):
-        """Execute natural language query and return results"""
-        try:
-            sql_query = self.natural_language_to_sql(nl_query)
-            
-            if not sql_query:
-                return {
-                    'error': 'Could not convert query to SQL',
-                    'results': []
-                }
-            
-            with connection.cursor() as cursor:
-                cursor.execute(sql_query)
-                columns = [desc[0] for desc in cursor.description]
-                results = cursor.fetchall()
-                
-                # Convert to list of dictionaries
-                formatted_results = [
-                    dict(zip(columns, row)) for row in results
-                ]
-                
-                return {
-                    'sql_query': sql_query,
-                    'results': formatted_results,
-                    'count': len(formatted_results)
-                }
-                
-        except Exception as e:
-            logger.error(f"Error executing NL query: {e}")
-            return {
-                'error': str(e),
-                'results': []
-            }
     
     def log_interaction(self, question, answer, persona_name, sources):
         """Log question-answer interaction"""
@@ -336,24 +337,3 @@ class RAGPipeline:
             
         except Exception as e:
             logger.error(f"Error logging interaction: {e}")
-    
-    def get_system_metrics(self):
-        """Get system performance metrics"""
-        try:
-            return {
-                'total_content': Content.objects.count(),
-                'total_questions': QuestionAnswer.objects.count(),
-                'topics_covered': Content.objects.values('topic').distinct().count(),
-                'grades_covered': Content.objects.values('grade').distinct().count(),
-                'average_rating': QuestionAnswer.objects.filter(
-                    rating__isnull=False
-                ).aggregate(avg=models.Avg('rating'))['avg'] or 0.0,
-                'top_topics': list(
-                    Content.objects.values('topic')
-                    .annotate(count=models.Count('id'))
-                    .order_by('-count')[:5]
-                )
-            }
-        except Exception as e:
-            logger.error(f"Error getting metrics: {e}")
-            return {}

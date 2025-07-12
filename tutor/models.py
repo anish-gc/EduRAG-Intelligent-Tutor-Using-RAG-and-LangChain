@@ -10,7 +10,7 @@ class TutorPersona(models.Model):
         ('encouraging', 'Encouraging'),
     ]
     
-    name = models.CharField(max_length=50, choices=PERSONA_CHOICES, unique=True)
+    name = models.CharField(max_length=50, choices=PERSONA_CHOICES)
     system_prompt = models.TextField()
     description = models.TextField(blank=True)
     

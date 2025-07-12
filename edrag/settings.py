@@ -28,7 +28,10 @@ DEBUG = config("DEBUG")
 
 
 ALLOWED_HOSTS = []
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React frontend
+    "http://127.0.0.1:3000",
+]
 
 # Application definition
 
@@ -41,7 +44,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
-    "api",
     "content",
     "rag",
     "tutor",
@@ -94,6 +96,7 @@ DATABASES = {
 }
 
 OPENAI_API_KEY = config('OPENAI_API_KEY')
+print(OPENAI_API_KEY)
 # HUGGING_FACE_API_KEY = config('HUGGING_FACE_API_KEY')
 
 # REST Framework
@@ -128,3 +131,24 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'edurag.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}

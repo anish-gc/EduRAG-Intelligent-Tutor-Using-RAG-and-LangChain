@@ -1,0 +1,61 @@
+"POST /api/ask/ HTTP/1.1" 200 354
+"GET / HTTP/1.1" 200 15357
+Not Found: /.well-known/appspecific/com.chrome.devtools.json
+"GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 2773
+"GET /api/metrics/ HTTP/1.1" 200 873
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Not Found: /.well-known/appspecific/com.chrome.devtools.json
+"GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 2773
+Not Found: /.well-known/appspecific/com.chrome.devtools.json
+"GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 2773
+"POST /api/ask/ HTTP/1.1" 200 347
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics HTTP/1.1" 301 0
+"GET /api/metrics/ HTTP/1.1" 200 1005
+"POST /api/ask/ HTTP/1.1" 200 347
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/ask/ HTTP/1.1" 200 354
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/rag_pipeline.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/rag_pipeline.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/rag_pipeline.py changed, reloading.
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1012
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1012
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1012
+"POST /api/ask/ HTTP/1.1" 200 360
+"POST /api/ask/ HTTP/1.1" 200 362
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/ask/ HTTP/1.1" 200 362
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/rag_pipeline.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/rag_pipeline.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/content/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1053
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1053
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1053
+"POST /api/ask/ HTTP/1.1" 200 963
+"POST /api/ask/ HTTP/1.1" 200 1267
+"GET / HTTP/1.1" 200 15357
+"GET /api/metrics/ HTTP/1.1" 200 1065
+"POST /api/ask/ HTTP/1.1" 200 310
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/anishchengre/Production-Ready/EduRAG-Intelligent-Tutor-Using-RAG-and-LangChain/tutor/views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/ask/ HTTP/1.1" 200 935

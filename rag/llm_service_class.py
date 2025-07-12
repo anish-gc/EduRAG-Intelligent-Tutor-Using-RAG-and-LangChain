@@ -29,7 +29,7 @@ class LLMService:
     def generate_answer(self, question, context, persona_prompt):
         """generate answer using RAG"""
         system_prompt = f"""
-        ersona_prompt
+        {persona_prompt}
         
         You are an educational tutor. Use the following context to answer the student's question.
         If the context doesn't contain relevant information, politely say so and provide general guidance.

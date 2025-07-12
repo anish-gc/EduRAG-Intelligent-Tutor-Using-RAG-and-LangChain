@@ -291,7 +291,7 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8000';
+        const API_BASE = 'http://localhost:8000/api';
         let isLoading = false;
 
         // Initialize the application
@@ -333,7 +333,7 @@
             const loadingMsg = addMessage('assistant', '', true);
 
             try {
-                const response = await fetch(`${API_BASE}/ask`, {
+                const response = await fetch(`${API_BASE}/ask/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
